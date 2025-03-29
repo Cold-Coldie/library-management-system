@@ -63,26 +63,31 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
-// Start server
-const PORT = config.port;
+// Export for testing
+module.exports = app;
 
-// Sync database and start server
-const startServer = async () => {
-  try {
-    // Sync database (set force to true to drop and recreate tables - use with caution!)
-    const force = process.env.DB_FORCE_SYNC === "true";
-    await syncDatabase(force);
+// Only start the server if we're not in a test environment
+if (process.env.NODE_ENV !== "test") {
+  const PORT = config.port;
 
-    // Start server
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
-      console.log(`Environment: ${config.nodeEnv}`);
-      console.log(`Database: SQLite (file-based database)`);
-    });
-  } catch (error) {
-    console.error("Failed to start server:", error);
-    process.exit(1);
-  }
-};
+  // Sync database and start server
+  const startServer = async () => {
+    try {
+      // Sync database (set force to true to drop and recreate tables - use with caution!)
+      const force = process.env.DB_FORCE_SYNC === "true";
+      await syncDatabase(force);
 
-startServer();
+      // Start server
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+        console.log(`Environment: ${config.nodeEnv}`);
+        console.log(`Database: SQLite (file-based database)`);
+      });
+    } catch (error) {
+      console.error("Failed to start server:", error);
+      process.exit(1);
+    }
+  };
+
+  startServer();
+}
